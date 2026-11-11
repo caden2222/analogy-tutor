@@ -119,3 +119,9 @@ li p { color: var(--muted); margin-top: 8px; }
 }
 /* All changes and anchor navigation are instant; no motion to disable. */
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+/* Network feedback uses the same quiet demo surface. */
+.request-state { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; color: var(--muted); font-size: 14px; }
+.request-state:has(#request-status:not(:empty)) { margin-block: 16px; }
+button:disabled { cursor: wait; opacity: .65; }
+textarea:disabled { opacity: .8; }

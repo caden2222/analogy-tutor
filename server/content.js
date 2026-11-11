@@ -1,5 +1,5 @@
 ﻿// Teaching content is independent of the page and the response selection rules.
-window.lesson = {
+module.exports = {
  story: `Imagine you’re preparing a library display about space. You have a request card describing the information you need. Each book has a matching card and an information card.
 
 You compare your request card with every matching card. Each comparison produces a match score. Those scores become shares that add up to one. A book with a larger share contributes more of its information card to your final combined notes. You combine information from the books rather than simply choosing one winner.
@@ -16,3 +16,4 @@ Limitation: real attention uses lists of numbers and calculations. It does not r
  fallback: `This scripted demo cannot reliably interpret that message. I won’t guess what you understood. Try the sample misconception, review the story, or open the technical explanation. A later LLM version will support flexible follow-ups.`,
  explain: `Explain query, key and value in your own words. For the complete scripted feedback path, try the labelled sample below. Other answers are accepted, but this demo cannot assess them reliably.`
 };
+

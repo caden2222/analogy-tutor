@@ -1,5 +1,6 @@
-﻿// A small provider boundary: a future backend provider can return the same shape.
-window.scriptedProvider = {
+﻿const lesson = require('./content');
+// A small provider boundary: a future backend provider can return the same shape.
+module.exports = {
  respond({action, message, history}) {
   const text = (message || '').trim().toLowerCase();
   let key = action;
@@ -12,6 +13,7 @@ window.scriptedProvider = {
     return {key:'feedback', text:'You got this part: [1, 6] is the correct combined output. Each value was scaled by its weight and then added. You can review the worked answer or continue with the technical explanation.'};
    }
   }
-  return { key: window.lesson[key] ? key : 'fallback', text: window.lesson[key] || window.lesson.fallback };
+  return { key: lesson[key] ? key : 'fallback', text: lesson[key] || lesson.fallback };
  }
 };
+
