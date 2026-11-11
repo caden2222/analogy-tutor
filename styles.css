@@ -1,0 +1,121 @@
+﻿/* Palette roles: midnight canvas, slate working surfaces, restrained amber actions. */
+:root {
+ --canvas: #0B1018;
+ --surface: #172333;
+ --accent: #FFBE70;
+ --text: #F5F7FA;
+ --muted: #B5C0CE;
+ --border: #34465A;
+ --focus: #FFBE70;
+ color-scheme: dark;
+ font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+ color: var(--text); background: var(--canvas); font-size: 16px; line-height: 1.65;
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+.site-header, main, .site-footer { width: min(100% - 64px, 1152px); margin-inline: auto; }
+.site-header { min-height: 80px; display: flex; align-items: center; justify-content: space-between; gap: 24px; border-bottom: 1px solid var(--border); }
+.wordmark { font-size: 20px; font-weight: 750; letter-spacing: -.04em; }
+nav { display: flex; gap: 32px; }
+a { color: var(--text); text-underline-offset: 5px; }
+a:hover { text-decoration-thickness: 2px; }
+nav a { color: var(--muted); font-size: 14px; text-decoration: none; }
+nav a:hover { color: var(--text); text-decoration: underline; }
+h1, h2, h3, h4, p, figure { margin: 0; }
+.hero { display: grid; grid-template-columns: 1.12fr 1fr; gap: 48px; align-items: center; padding-block: 48px; }
+h1 { font-size: clamp(40px, 4.6vw, 64px); font-weight: 760; line-height: 1.06; letter-spacing: -.055em; }
+.hero-description { max-width: 48ch; color: var(--muted); font-size: 18px; margin-top: 24px; }
+.hero-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 24px; margin-top: 24px; }
+.hero-actions > a:not(.button) { font-size: 14px; }
+.disclosure { color: var(--muted); font-size: 13px; margin-top: 16px; }
+h2 { font-size: 24px; line-height: 1.35; letter-spacing: -.025em; }
+h3 { font-size: 18px; line-height: 1.5; }
+h4 { font-size: 16px; line-height: 1.5; margin-bottom: 8px; }
+button, .button { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 8px 24px; font: inherit; font-size: 14px; font-weight: 700; line-height: 1.5; border: 1px solid var(--accent); border-radius: 8px; color: var(--canvas); background: var(--accent); text-decoration: none; cursor: pointer; }
+button:hover, .button:hover { text-decoration: underline; text-underline-offset: 4px; }
+.secondary { color: var(--text); background: transparent; border-color: var(--border); }
+.secondary:hover { border-color: var(--muted); background: var(--canvas); }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
+/* The only atmospheric glow sits behind the library illustration. */
+.library-illustration { position: relative; isolation: isolate; min-width: 0; padding: 8px 16px; }
+.library-illustration::before { content: ""; position: absolute; z-index: -1; width: 65%; height: 65%; left: 20%; top: 16%; background: rgba(255,190,112,.09); filter: blur(48px); border-radius: 50%; pointer-events: none; }
+.request-card { position: relative; width: 80%; padding: 16px 24px; background: var(--surface); border: 1px solid #687281; border-radius: 8px; }
+.illustration-label { display: block; color: var(--muted); font-size: 12px; }
+.request-card p { margin-top: 8px; font-weight: 600; font-size: 18px; line-height: 1.4; }
+.question-mark { position: absolute; right: 24px; top: 32px; font-size: 40px; color: var(--accent); line-height: 1; }
+.connection { height: 24px; width: 64%; margin-left: 24%; display: flex; justify-content: space-between; }
+.connection span { display: block; height: 24px; width: 1px; background: #7E796D; }
+.book-scene { margin-left: 24px; }
+.books { display: block; width: 100%; height: 120px; }
+.library-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: -8px; position: relative; }
+.library-cards > div { padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
+.library-cards strong { display: block; font-size: 24px; line-height: 1.35; margin-top: 8px; }
+.information-card strong { color: var(--accent); }
+.library-cards p { font-size: 13px; line-height: 1.5; color: var(--muted); margin-top: 8px; }
+figcaption { margin-top: 16px; font-size: 13px; color: var(--muted); }
+figcaption span { display: block; font-size: 11px; margin-top: 8px; }
+.demo { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 32px; scroll-margin-top: 24px; }
+.demo-heading { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 24px; }
+.preview-label { color: var(--muted); font-size: 13px; }
+.demo-intro { max-width: 72ch; color: var(--muted); font-size: 14px; margin-top: 8px; }
+.start-section { margin-top: 24px; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-block: 16px; }
+#conversation { max-width: 72ch; }
+article { padding-block: 24px; border-top: 1px solid var(--border); }
+article.learner { background: var(--canvas); padding: 16px; border: 0; border-radius: 8px; margin-block: 24px; }
+article > h3 { color: var(--muted); font-size: 13px; margin-bottom: 16px; }
+article.learner > h3 { margin-bottom: 8px; }
+article p { white-space: pre-wrap; overflow-wrap: anywhere; }
+.lesson-part + .lesson-part { margin-top: 24px; }
+.lesson-part p + p { margin-top: 16px; }
+.lesson-part.limitation { color: var(--muted); }
+.follow-ups { border-top: 1px solid var(--border); padding-top: 24px; margin-top: 8px; }
+.follow-ups > .hint { margin-top: 8px; }
+form { max-width: 72ch; margin-top: 24px; }
+label { display: block; font-size: 15px; font-weight: 600; }
+textarea { display: block; width: 100%; min-width: 0; padding: 8px 16px; margin-block: 8px; border: 1px solid #7E91A8; border-radius: 8px; background: var(--canvas); color: var(--text); font: inherit; line-height: 1.6; resize: vertical; }
+textarea::placeholder { color: var(--muted); opacity: 1; }
+form .hint { margin-block: 8px 16px; }
+.hint { color: var(--muted); font-size: 14px; }
+.demo-footer { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; padding-top: 24px; margin-top: 24px; border-top: 1px solid var(--border); }
+.how-it-works { padding-block: 48px; scroll-margin-top: 24px; }
+ol { list-style: none; counter-reset: steps; padding: 0; margin: 24px 0 0; max-width: 80ch; }
+li { counter-increment: steps; position: relative; padding: 16px 0 16px 48px; border-top: 1px solid var(--border); }
+li::before { content: counter(steps, decimal-leading-zero); position: absolute; left: 0; color: var(--muted); font-size: 14px; }
+li strong { font-size: 17px; }
+li p { color: var(--muted); margin-top: 8px; }
+.site-footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; border-top: 1px solid var(--border); padding-block: 24px; font-size: 13px; color: var(--muted); }
+.site-footer a { color: var(--muted); }
+.skip-link { position: absolute; z-index: 5; top: 8px; left: 16px; padding: 8px 16px; background: var(--surface); transform: translateY(-160%); }
+.skip-link:focus { transform: none; }
+[hidden] { display: none !important; }
+@media (max-width: 850px) {
+ .hero { gap: 24px; }
+ .hero-description { font-size: 16px; }
+ .library-illustration { padding-inline: 0; }
+ .request-card { width: 95%; padding: 16px; }
+ .question-mark { right: 16px; }
+ .book-scene { margin-left: 0; }
+ .library-cards { gap: 8px; }
+ .library-cards > div { padding: 8px; }
+ .illustration-label { font-size: 11px; }
+}
+@media (max-width: 650px) {
+ .site-header, main, .site-footer { width: calc(100% - 32px); }
+ .site-header { min-height: 72px; gap: 16px; }
+ .wordmark { font-size: 17px; }
+ nav { gap: 16px; }
+ nav a { font-size: 12px; }
+ .hero { grid-template-columns: minmax(0,1fr); padding-block: 32px; gap: 32px; }
+ h1 { font-size: 44px; }
+ .library-illustration { width: 100%; max-width: 420px; margin-inline: auto; }
+ .request-card { width: 80%; }
+ .illustration-label { font-size: 12px; }
+ .library-cards > div { padding: 16px; }
+ .demo { padding: 24px 16px; border-radius: 8px; }
+ .actions { flex-direction: column; align-items: stretch; }
+ .actions button { width: 100%; text-align: left; justify-content: flex-start; }
+ .how-it-works { padding-block: 32px; }
+}
+/* All changes and anchor navigation are instant; no motion to disable. */
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }

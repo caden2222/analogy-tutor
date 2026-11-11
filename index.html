@@ -1,0 +1,52 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Explore query, key and value through a familiar library story in a free, local scripted preview.">
+<title>Analogy Tutor · Learn through familiar stories</title><link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip-link" href="#demo">Skip to demo</a>
+<header class="site-header"><span class="wordmark">Analogy Tutor</span><nav aria-label="Main navigation"><a href="#how-it-works">How it works</a><a href="#demo">Try the demo</a></nav></header>
+<main>
+<section class="hero" aria-labelledby="hero-title">
+<div class="hero-copy">
+<h1 id="hero-title">Big ideas.<br>Familiar stories.</h1>
+<p class="hero-description">Understand difficult concepts through a simple story, connect it to the real idea, then check what you’ve learned.</p>
+<div class="hero-actions"><a class="button" href="#demo">Try the QKV demo</a><a href="#how-it-works">How it works</a></div>
+<p class="disclosure">Scripted preview · Query, key and value</p>
+</div>
+<figure class="library-illustration" aria-labelledby="library-caption">
+<div class="request-card"><span class="illustration-label">Your request · Query</span><p>What can tell me<br>about space?</p><span class="question-mark" aria-hidden="true">?</span></div>
+<div class="connection" aria-hidden="true"><span></span><span></span><span></span></div>
+<div class="book-scene">
+<svg class="books" viewBox="0 0 400 150" fill="none" aria-hidden="true">
+<path d="M24 136H376" stroke="#687A90" stroke-width="2"/>
+<rect x="48" y="28" width="53" height="106" rx="5" fill="#243B51" stroke="#687A90"/>
+<path d="M59 30V132M70 48H90M70 56H84" stroke="#8C9DAF"/>
+<rect x="107" y="10" width="65" height="124" rx="5" fill="#3D4850" stroke="#A6A18F"/>
+<path d="M120 12V132M132 31H156M132 39H151M132 111H156" stroke="#FFBE70"/>
+<rect x="180" y="38" width="47" height="96" rx="5" fill="#20354A" stroke="#687A90"/>
+<path d="M191 40V132M200 55H217M200 63H213" stroke="#8C9DAF"/>
+<g transform="rotate(-12 273 133)"><rect x="246" y="27" width="54" height="107" rx="5" fill="#2A3A49" stroke="#687A90"/><path d="M257 29V132M267 46H289M267 54H284" stroke="#8C9DAF"/></g>
+<path d="M35 141H365" stroke="#26374A" stroke-width="6"/>
+</svg>
+<div class="library-cards"><div class="matching-card"><span class="illustration-label">Matching card</span><strong>Key</strong><p>Compared with<br>your request</p></div><div class="information-card"><span class="illustration-label">Information card</span><strong>Value</strong><p>Information that<br>gets combined</p></div></div>
+</div>
+<figcaption id="library-caption">A library story, connected to attention.<span>Query + key → score → weight · Weight × value → contribution</span></figcaption>
+</figure>
+</section>
+<section id="demo" class="demo" aria-labelledby="demo-title" tabindex="-1">
+<div class="demo-heading"><h2 id="demo-title">Query, key &amp; value</h2><span class="preview-label">Scripted preview</span></div>
+<p class="demo-intro">One library story about attention. Supports selected example replies, not arbitrary topics or answers. No live AI or API calls.</p>
+<section class="start-section" aria-labelledby="start-title"><h3 id="start-title">Choose where to start</h3><div id="starts" class="actions"><button data-start="scratch">Explain from scratch</button><button data-start="little" class="secondary">I know a little</button></div><form id="prior" hidden><label for="knowledge">What do you understand, or where did you get stuck? (optional)</label><textarea id="knowledge" rows="2" maxlength="1000" aria-describedby="prior-hint"></textarea><p id="prior-hint" class="hint">Your note stays in this tab. This preview always starts with the same story.</p><button type="submit">Continue / skip</button></form></section>
+<section aria-label="Tutor conversation" id="conversation" role="log" aria-live="polite" aria-relevant="additions"></section>
+<section id="controls" class="follow-ups" hidden><h3>Where next?</h3><p class="hint">Checks are optional. Ask a question, explore an example or go straight to the real terms.</p><div id="actions" class="actions"></div><form id="message-form"><label for="message">Ask a question or explain it in your own words</label><textarea id="message" rows="3" maxlength="2000" required aria-describedby="message-hint" placeholder="Try: Is the value the score?"></textarea><p id="message-hint" class="hint">Only selected replies are recognised. Other messages receive a fallback, not an assessment.</p><button type="submit">Send</button></form></section>
+<div class="demo-footer"><button id="reset" class="secondary">Start again</button><p class="hint">Stored only in this tab’s memory. Refreshing clears the conversation.</p></div>
+</section>
+<section id="how-it-works" class="how-it-works" aria-labelledby="flow-title" tabindex="-1"><h2 id="flow-title">How it works</h2><ol><li><strong>Familiar story</strong><p>Explore the idea through one familiar situation, like finding information in a library.</p></li><li><strong>Connect the concept</strong><p>Map the story to real terms and see where the analogy stops working.</p></li><li><strong>Explain it back</strong><p>Try an optional check or explain-back, or go straight to the worked example.</p></li></ol></section>
+</main>
+<footer class="site-footer"><span>Analogy Tutor · Early prototype</span><a href="https://arxiv.org/html/1706.03762v7#S3.SS2">QKV technical reference</a></footer>
+<script src="content.js"></script><script src="provider.js"></script><script src="app.js"></script>
+</body></html>
+
