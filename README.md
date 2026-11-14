@@ -110,3 +110,38 @@ Technical reference: [Attention Is All You Need, sections 3.2 and 3.4](https://a
 Next milestone, after testing: backend LLM integration with current provider documentation, pricing and budget controls. No LLM integration is included here.
 
 Suggested commit message: `Add Express backend with isolated scripted tutor sessions`
+
+## Interactive library hero
+
+The hero now contains a procedural Three.js library. This is a visual explanation, not an AI model. The Express routes, scripted content, session isolation and retry/reset behaviour are unchanged.
+
+- `public/scene-ui.js`: HTML mode/book/pause controls, readable descriptions, slider outputs and a caught WebGL/module failure path.
+- `public/scene-renderer.js`: books, curved shelves, cards, lighting, paths, picking and scene transitions. It is independent of `public/app.js`.
+- `public/attention-math.mjs`: complementary supplied weights and the weighted sum. At 0.8/0.2, values [10, 0] and [0, 10] produce [8, 2].
+- `scripts/copy-three.cjs`: npm postinstall copies only Three.js browser modules and its license into ignored `public/vendor/`. Everything is served locally, without CDN requests, external 3D models or a bundler. Run `npm install` after pulling these changes. If lifecycle scripts are disabled, run `node scripts/copy-three.cjs` manually.
+- `tests/attention.test.mjs`: checks the initial result, all 101 slider positions and endpoints.
+- `scripts/check-scene.cjs`: optional headless Chromium/Edge browser checks, saving screenshots to a temporary directory. On Windows it uses installed Edge. To use another Chromium executable, set `BROWSER_BINARY` to its full path.
+
+Use Story mode and select each book to reveal its mapping. Switch to See the mechanism for Query + Keys → scores → softmax weights → weighted Values → output. Phones use a top-to-bottom mechanism to keep labels readable. The slider is a **separate two-value example**, with supplied weights; it does not derive weights from query/key vectors or assign two weights to the three story books.
+
+Keyboard: Tab reaches controls, arrow keys change the native mode radio group and slider, and Enter/Space activate buttons. Touch users can use the full HTML book controls or tap a rendered book. All important explanations remain HTML. WebGL failure leaves a static diagram and working HTML controls. Pause motion and reduced-motion preferences make transitions immediate. There is no idle spinning or floating loop.
+
+The renderer uses one small procedural scene, shared box geometry, 13 fixed connection buffers, no texture/model downloads, no shadow maps and no postprocessing. Pixel ratio is capped at 1.5, or 1.25 in narrow stages. Background books are omitted in narrow stages. Rendering is on demand; intersection and tab-visibility observers suspend it when it cannot be seen.
+
+Run as usual:
+
+```powershell
+npm install
+npm start
+```
+
+Open http://localhost:3000. For checks:
+
+```powershell
+npm test
+npm run test:browser
+```
+
+Verification: all 8 automated tests passed. Headless Edge rendered WebGL and checked mode/slider/pause/book keyboard controls, initial/endpoint calculations, connection thickness, reduced-motion operation, offscreen and hidden-tab suspension, the original tutor/reset flow and forced WebGL failure with usable controls. Desktop, tablet and phone screenshots were inspected. Real mobile hardware and screen-reader use have not been tested. There are no new AI capabilities, accounts, storage services or deployment changes.
+
+Suggested commit message: `Add interactive story-to-attention library scene with accessible mobile controls`

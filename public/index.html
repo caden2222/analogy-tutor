@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -10,31 +10,39 @@
 <header class="site-header"><span class="wordmark">Analogy Tutor</span><nav aria-label="Main navigation"><a href="#how-it-works">How it works</a><a href="#demo">Try the demo</a></nav></header>
 <main>
 <section class="hero" aria-labelledby="hero-title">
+<svg class="hero-shelves" viewBox="0 0 1200 700" preserveAspectRatio="none" aria-hidden="true"><path d="M440 100 Q800 160 1190 80 M360 300 Q800 360 1190 280 M430 110V150 M470 114V148 M520 119V160 M1060 105V140 M1100 100V140 M1140 94V130 M460 306 Q560 270 650 190 M650 190 Q790 210 910 315"/></svg>
 <div class="hero-copy">
 <h1 id="hero-title">Big ideas.<br>Familiar stories.</h1>
 <p class="hero-description">Understand difficult concepts through a simple story, connect it to the real idea, then check what you’ve learned.</p>
 <div class="hero-actions"><a class="button" href="#demo">Try the QKV demo</a><a href="#how-it-works">How it works</a></div>
 <p class="disclosure">Scripted preview · Query, key and value</p>
 </div>
-<figure class="library-illustration" aria-labelledby="library-caption">
-<div class="request-card"><span class="illustration-label">Your request · Query</span><p>What can tell me<br>about space?</p><span class="question-mark" aria-hidden="true">?</span></div>
-<div class="connection" aria-hidden="true"><span></span><span></span><span></span></div>
-<div class="book-scene">
-<svg class="books" viewBox="0 0 400 150" fill="none" aria-hidden="true">
-<path d="M24 136H376" stroke="#687A90" stroke-width="2"/>
-<rect x="48" y="28" width="53" height="106" rx="5" fill="#243B51" stroke="#687A90"/>
-<path d="M59 30V132M70 48H90M70 56H84" stroke="#8C9DAF"/>
-<rect x="107" y="10" width="65" height="124" rx="5" fill="#3D4850" stroke="#A6A18F"/>
-<path d="M120 12V132M132 31H156M132 39H151M132 111H156" stroke="#FFBE70"/>
-<rect x="180" y="38" width="47" height="96" rx="5" fill="#20354A" stroke="#687A90"/>
-<path d="M191 40V132M200 55H217M200 63H213" stroke="#8C9DAF"/>
-<g transform="rotate(-12 273 133)"><rect x="246" y="27" width="54" height="107" rx="5" fill="#2A3A49" stroke="#687A90"/><path d="M257 29V132M267 46H289M267 54H284" stroke="#8C9DAF"/></g>
-<path d="M35 141H365" stroke="#26374A" stroke-width="6"/>
-</svg>
-<div class="library-cards"><div class="matching-card"><span class="illustration-label">Matching card</span><strong>Key</strong><p>Compared with<br>your request</p></div><div class="information-card"><span class="illustration-label">Information card</span><strong>Value</strong><p>Information that<br>gets combined</p></div></div>
+<section class="library-lab" aria-labelledby="lab-title" data-mode="story" data-book="0">
+<div class="lab-top"><h2 id="lab-title">One story. A real mechanism.</h2><button id="pause-motion" type="button" class="secondary" aria-pressed="false">Pause motion</button></div>
+<fieldset class="scene-switch"><legend>Story / See the mechanism</legend><label><input type="radio" name="scene-mode" value="story" checked> Story</label><label><input type="radio" name="scene-mode" value="mechanism"> See the mechanism</label></fieldset>
+<div id="library-stage" class="library-stage" aria-hidden="true">
+<div class="static-library"><i></i><i></i><i></i><div></div></div>
+<div class="scene-label request-label" data-node="query"><strong>Request card</strong><span>What tells me about space?</span></div>
+<div class="scene-label key-label" data-node="key0"><strong>Matching card 1</strong><span>Space &amp; stars</span></div>
+<div class="scene-label key-label" data-node="key1"><strong>Matching card 2</strong><span>The Moon</span></div>
+<div class="scene-label key-label" data-node="key2"><strong>Matching card 3</strong><span>Oceans</span></div>
+<div class="scene-label value-label" data-node="value0"><strong>Information 1</strong><span>Star facts</span></div>
+<div class="scene-label value-label" data-node="value1"><strong>Information 2</strong><span>Moon facts</span></div>
+<div class="scene-label value-label" data-node="value2"><strong>Information 3</strong><span>Ocean facts</span></div>
+<div class="scene-label process-label" data-node="scores"><strong>Scores</strong></div>
+<div class="scene-label process-label" data-node="weights"><strong>Softmax</strong><span>Weights</span></div>
+<div class="scene-label process-label" data-node="output"><strong>Output</strong></div>
 </div>
-<figcaption id="library-caption">A library story, connected to attention.<span>Query + key → score → weight · Weight × value → contribution</span></figcaption>
-</figure>
+<p id="scene-status" class="scene-status">Interactive story diagram. The controls below also work without 3D.</p>
+<div class="book-picks" role="group" aria-label="Select a library book"><button type="button" class="secondary" data-book="0" aria-pressed="true">01 <span>Space atlas</span></button><button type="button" class="secondary" data-book="1" aria-pressed="false">02 <span>Moon guide</span></button><button type="button" class="secondary" data-book="2" aria-pressed="false">03 <span>Ocean life</span></button></div>
+<div class="book-detail" aria-live="polite" aria-atomic="true"><p id="book-detail">Space atlas: its matching card says “space and stars”; its information card carries star facts. Compare the matching card with your request to decide how much information to use.</p></div>
+<div id="mechanism-summary" class="mechanism-summary" hidden><p><strong>The actual flow</strong></p><div class="attention-flow"><span>Query + Keys</span><b aria-hidden="true">→</b><span>Scores</span><b aria-hidden="true">→</b><span>Softmax weights</span><b aria-hidden="true">→</b><span>Weighted Values</span><b aria-hidden="true">→</b><span>Output</span></div><p>Scores come from scaled query–key dot products. Softmax makes weights; each weight scales its value, then the contributions are summed. Values are information, never scores.</p></div>
+<p class="scene-limitation">The story has a limit: real queries, keys and values are vectors, not book labels. Attention combines information; it does not simply pick one winning book.</p>
+</section>
+</section>
+<section class="weight-lab" aria-labelledby="weight-title">
+<div class="weight-intro"><p class="section-kicker">Explore the combination</p><h2 id="weight-title">Change the share.<br>See what gets carried forward.</h2><p>A separate two-value example. These attention weights are <strong>supplied for exploration</strong>, not calculated from query/key vectors.</p><label for="attention-weight">First attention weight <output id="weight-first" for="attention-weight">0.8</output></label><input id="attention-weight" type="range" min="0" max="100" value="80" step="1" aria-describedby="weight-help" aria-valuetext="First weight 0.8; second weight 0.2; output [8, 2]"><p id="weight-help">The second weight is always 1 minus the first. Use arrow keys or drag to adjust.</p></div>
+<div class="weight-calculation"><div class="value-row"><span>Value 1 <strong>[10, 0]</strong></span><span>× <output id="weight-one">0.8</output></span><span>Contribution <strong id="contribution-one">[8, 0]</strong></span></div><div class="value-row"><span>Value 2 <strong>[0, 10]</strong></span><span>× <output id="weight-two">0.2</output></span><span>Contribution <strong id="contribution-two">[0, 2]</strong></span></div><svg class="weight-paths" viewBox="0 0 400 64" aria-hidden="true"><path id="weight-path-one" d="M24 8 C24 48 200 8 200 60" stroke-width="7"/><path id="weight-path-two" d="M376 8 C376 48 200 8 200 60" stroke-width="3"/></svg><p class="weighted-output">Combined output <output id="weighted-output" for="attention-weight">[8, 2]</output></p><p class="weight-note">Scale each value. Add the contributions. Attention weights are different from next-token probabilities.</p></div>
 </section>
 <section id="demo" class="demo" aria-labelledby="demo-title" tabindex="-1">
 <div class="demo-heading"><h2 id="demo-title">Query, key &amp; value</h2><span class="preview-label">Scripted preview</span></div>
@@ -47,7 +55,5 @@
 <section id="how-it-works" class="how-it-works" aria-labelledby="flow-title" tabindex="-1"><h2 id="flow-title">How it works</h2><ol><li><strong>Familiar story</strong><p>Explore the idea through one familiar situation, like finding information in a library.</p></li><li><strong>Connect the concept</strong><p>Map the story to real terms and see where the analogy stops working.</p></li><li><strong>Explain it back</strong><p>Try an optional check or explain-back, or go straight to the worked example.</p></li></ol></section>
 </main>
 <footer class="site-footer"><span>Analogy Tutor · Early prototype</span><a href="https://arxiv.org/html/1706.03762v7#S3.SS2">QKV technical reference</a></footer>
-<script src="app.js"></script>
+<script src="app.js"></script><script type="module" src="scene-ui.js"></script>
 </body></html>
-
-

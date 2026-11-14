@@ -6,12 +6,15 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node --test"
+    "test": "node --test",
+    "postinstall": "node scripts/copy-three.cjs",
+    "test:browser": "node scripts/check-scene.cjs"
   },
   "engines": {
     "node": ">=22"
   },
   "dependencies": {
-    "express": "^5.3.0"
+    "express": "^5.3.0",
+    "three": "^0.187.0"
   }
 }
