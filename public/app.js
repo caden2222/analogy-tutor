@@ -1,9 +1,12 @@
-﻿// The server owns history; the browser keeps only a temporary session ID and UI state.
+// The server owns history; the browser keeps only a temporary session ID and UI state.
 const conversation = document.querySelector('#conversation');
 const controls = document.querySelector('#controls');
 const input = document.querySelector('#message');
 const statusText = document.querySelector('#request-status');
 const retryButton = document.querySelector('#retry');
+const modeSelect = document.querySelector('#tutor-mode');
+let selectedMode = 'scripted';
+let requestTimeoutMs = 35000;
 let sessionId = null;
 let busy = false;
 let failedOperation = null;
@@ -11,7 +14,7 @@ let expired = false;
 
 async function post(path, body, withSession = true) {
  const controller = new AbortController();
- const timer = setTimeout(() => controller.abort(), 10000);
+ const timer = setTimeout(() => controller.abort(), path === "/api/chat" ? requestTimeoutMs : 10000);
  try {
   const headers = { 'Content-Type': 'application/json' };
   if (withSession) headers['X-Session-Id'] = sessionId;
@@ -29,27 +32,29 @@ function setBusy(value) {
  busy = value;
  document.querySelector('#demo').setAttribute('aria-busy', String(value));
  document.querySelectorAll('#demo button, #demo textarea').forEach(element => { element.disabled = value; });
+ if (modeSelect) modeSelect.disabled = value || Boolean(sessionId) || Boolean(failedOperation);
 }
 async function run(operation) {
  if (busy) return;
  setBusy(true);
  retryButton.hidden = true;
- statusText.textContent = operation.reset ? 'Clearing this scripted session…' : 'Getting a scripted reply…';
+ statusText.textContent = operation.reset ? 'Clearing this session…' : selectedMode === 'generated' ? 'Generating a QKV reply with Groq…' : 'Getting a scripted reply…';
  try {
   if (!sessionId) {
-   const data = await post('/api/session', {}, false);
+   const data = await post('/api/session', {mode: selectedMode}, false);
    if (typeof data.sessionId !== 'string') throw new Error('Invalid session response.');
-   sessionId = data.sessionId;
+   sessionId = data.sessionId; if (Number.isInteger(data.requestTimeoutMs) && data.requestTimeoutMs >= 2000 && data.requestTimeoutMs <= 65000) requestTimeoutMs = data.requestTimeoutMs;
   }
   const data = await post(operation.reset ? '/api/reset' : '/api/chat', operation.body);
   if (operation.reset) {
    if (data.reset !== true) throw new Error('Invalid reset response.');
    clearInterface();
   } else {
-   if (data.scripted !== true || typeof data.reply?.key !== 'string' || typeof data.reply?.text !== 'string') throw new Error('Invalid scripted response.');
+   if (data.mode !== selectedMode || data.scripted !== (selectedMode === 'scripted') || typeof data.reply?.key !== 'string' || typeof data.reply?.text !== 'string') throw new Error('Invalid tutor response.');
+   if (selectedMode === 'generated' && (data.reply.key !== 'generated' || !Array.isArray(data.reply.sections) || data.reply.sections.length < 1 || data.reply.sections.length > 6 || data.reply.sections.some(section => !section || !Object.hasOwn(sectionTitles, section.type) || typeof section.text !== 'string' || !section.text.trim() || section.text.length > 2000))) throw new Error('Invalid teaching sections.');
    // Append only after success so retrying never duplicates visible messages.
    add('learner', operation.message);
-   add('tutor', data.reply.text, data.reply.key);
+   add('tutor', data.reply.text, data.reply.key, data.reply.sections);
    if (operation.start) {
     document.querySelector('#starts').hidden = true;
     document.querySelector('#prior').hidden = true;
@@ -62,7 +67,7 @@ async function run(operation) {
  } catch (error) {
   expired = error.status === 410;
   failedOperation = operation;
-  statusText.textContent = expired ? error.message : `Could not get a scripted reply. ${error.status ? error.message : 'Check that the Node server is running, then retry.'} Your input has been kept.`;
+  statusText.textContent = expired ? error.message : `Could not get a tutor reply. ${error.status ? error.message : 'Check that the Node server is running, then retry.'} Your input has been kept.`;
   retryButton.hidden = expired;
  } finally {
   setBusy(false);
@@ -83,6 +88,7 @@ function chat(action, message, options = {}) {
  return run({ body, message, ...options });
 }
 function clearInterface() {
+ sessionId = null;
  conversation.replaceChildren();
  controls.hidden = true;
  document.querySelector('#starts').hidden = false;
@@ -91,15 +97,18 @@ function clearInterface() {
  input.value = '';
  expired = false;
 }
-function add(role, text, key) {
+const sectionTitles = {story:'A familiar story',concept:'Connect it to the concept',limitation:'Where the analogy stops',check:'Optional understanding check',answer:'Your question',technical:'The real mechanism',feedback:'What to keep and what to fix'};
+function add(role, text, key, sections) {
 
  const card = document.createElement('article');
  card.className = role;
  const label = document.createElement('h3');
- label.textContent = role === 'learner' ? 'You' : 'Tutor · scripted reply';
+ label.textContent = role === 'learner' ? 'You' : key === 'generated' ? 'Tutor · generated by Groq · may be inaccurate' : 'Tutor · scripted reply';
  card.append(label);
  // Presentation only: retain the provider's text and expose the story structure.
- if (key === 'story') {
+ if (key === 'generated') {
+  for (const section of sections) appendPart(sectionTitles[section.type], [section.text], section.type === 'limitation' ? 'limitation' : '');
+ } else if (key === 'story') {
   const paragraphs = text.split(/\r?\n\s*\r?\n/);
   appendPart('The library story', paragraphs.slice(0, 2));
   appendPart('Connect it to the concept', [paragraphs[2]]);
@@ -184,3 +193,18 @@ document.querySelector('#reset').addEventListener('click', () => {
  }
  run({ reset: true, body: { requestId: crypto.randomUUID() } });
 });
+
+function updateModeDescription() {
+ const description = document.querySelector('#mode-description');
+ const badge = document.querySelector('#demo-mode-label');
+ if (description) description.textContent = selectedMode === 'scripted'
+  ? 'One library story about attention. Supports selected example replies, not arbitrary topics or answers. No model API calls.'
+  : 'Generated QKV tutoring using your configured Groq account. This conversation is sent to Groq; quotas apply and answers may be inaccurate. Start again to change mode.';
+ if (badge) badge.textContent = selectedMode === 'scripted' ? 'Scripted preview' : 'Generated · Groq API';
+}
+modeSelect?.addEventListener('change', () => {
+ if (busy || failedOperation || sessionId) return;
+ selectedMode = modeSelect.value === 'generated' ? 'generated' : 'scripted';
+ updateModeDescription();
+});
+updateModeDescription();

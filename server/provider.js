@@ -1,7 +1,7 @@
-﻿const lesson = require('./content');
+const lesson = require('./content');
 // A small provider boundary: a future backend provider can return the same shape.
 module.exports = {
- respond({action, message, history}) {
+ async respond({action, message, history}) {
   const text = (message || '').trim().toLowerCase();
   let key = action;
   if (!key) {
@@ -16,4 +16,3 @@ module.exports = {
   return { key: lesson[key] ? key : 'fallback', text: lesson[key] || lesson.fallback };
  }
 };
-

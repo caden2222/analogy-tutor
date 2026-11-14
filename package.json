@@ -2,16 +2,16 @@
   "name": "analogy-tutor",
   "version": "0.2.0",
   "private": true,
-  "description": "A scripted QKV tutor with an Express backend and isolated in-memory sessions",
+  "description": "QKV analogy tutor with scripted and Groq-generated modes",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js",
+    "start": "node --env-file-if-exists=.env server.js",
+    "dev": "node --watch --env-file-if-exists=.env server.js",
     "test": "node --test",
     "postinstall": "node scripts/copy-three.cjs",
     "test:browser": "node scripts/check-scene.cjs"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=22.9.0"
   },
   "dependencies": {
     "express": "^5.3.0",

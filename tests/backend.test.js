@@ -1,12 +1,12 @@
-﻿const { test } = require('node:test');
+const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { randomUUID } = require('node:crypto');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const { createApp } = require('../server');
 
-async function fixture(t) {
- const instance = createApp();
+async function fixture(t, options = {}) {
+ const instance = createApp(options);
  const server = instance.app.listen(0, '127.0.0.1');
  await new Promise(resolve => server.once('listening', resolve));
  t.after(() => { instance.close(); server.closeAllConnections(); server.close(); });
@@ -98,7 +98,7 @@ function browser(f) {
   focus(){}
   replaceChildren(){this.children=[]}
  }
- const ids=['conversation','controls','message','request-status','retry','demo','starts','prior','knowledge','actions','message-form','reset'];
+ const ids=['conversation','controls','message','request-status','retry','demo','starts','prior','knowledge','actions','message-form','reset','tutor-mode','mode-description','demo-mode-label'];
  const elements=Object.fromEntries(ids.map(id=>[id,new Element()]));
  const starts=[new Element(),new Element()];starts[0].dataset.start='scratch';starts[1].dataset.start='little';
  const demoButtons=()=>[...starts,...elements.actions.children,elements.reset,elements.retry];
@@ -155,4 +155,133 @@ test('frontend prior knowledge and session expiration recovery', async t => {
  b.elements.reset.listeners.click();assert.equal(b.run('sessionId'),null);
  await b.run("chat('story','start',{start:true})");
  assert.notEqual(b.run('sessionId'),id);
+});
+
+
+const {createGroqProvider,readConfig,ModelError,contextMessages}=require('../server/groq-provider');
+const generatedReply={key:'generated',text:'A reply about values',sections:[{type:'answer',text:'<b>A value carries information, not a score.</b>'}]};
+const testConfig=()=>readConfig({GROQ_API_KEY:'test-key-not-real',MODEL_TIMEOUT_MS:'1000',GENERATED_REQUESTS_PER_MINUTE:'10'});
+const responseFor=sections=>new Response(JSON.stringify({choices:[{finish_reason:'stop',message:{content:JSON.stringify({sections})}}]}),{headers:{'Content-Type':'application/json'}});
+
+test('generated requests send correct instructions/history and do not expose the key', async t=>{
+ let sent;
+ const config=testConfig();
+ const provider=createGroqProvider(config,async(url,options)=>{sent={url,options};return responseFor(generatedReply.sections)});
+ const f=await fixture(t,{config,generatedProvider:provider});
+ const id=(await f.post('/api/session',{mode:'generated'})).body.sessionId;
+ const response=await f.chat(id,{message:'Is the value the score?'});
+ assert.equal(response.status,200);assert.equal(response.body.scripted,false);assert.equal(response.body.mode,'generated');
+ const payload=JSON.parse(sent.options.body);
+ assert.equal(sent.url,'https://api.groq.com/openai/v1/chat/completions');
+ assert.equal(sent.options.headers.Authorization,'Bearer test-key-not-real');
+ assert.equal(payload.model,'openai/gpt-oss-120b');assert.equal(payload.stream,false);
+ assert.equal(payload.max_completion_tokens,1024);assert.equal(payload.reasoning_effort,'low');
+ assert.match(payload.messages[0].content,/Values are not scores/);
+ assert.match(payload.messages.at(-1).content,/Is the value the score/);
+ assert(!JSON.stringify(response.body).includes(config.apiKey));
+ await f.chat(id,{message:'Why?'});
+ const followup=JSON.parse(sent.options.body).messages;
+ assert(followup.some(m=>m.role==='assistant'&&m.content.includes('value carries')));
+ for(const file of ['/server/groq-provider.js','/server/tutor-instructions.md','/.env.example'])assert.equal((await fetch(f.base+file)).status,404);
+});
+
+test('simultaneous identical retries share one generation and one history write', async t=>{
+ let calls=0,release,started;
+ const startedPromise=new Promise(resolve=>{started=resolve});
+ const provider={model:'mock',respond:async()=>{calls++;started();await new Promise(resolve=>{release=resolve});return generatedReply}};
+ const f=await fixture(t,{config:testConfig(),generatedProvider:provider});
+ const id=(await f.post('/api/session',{mode:'generated'})).body.sessionId;
+ const body={requestId:randomUUID(),message:'What is a value?'};
+ const first=f.post('/api/chat',body,id);await startedPromise;
+ const second=f.post('/api/chat',body,id);
+ assert.equal((await f.chat(id,{message:'a different request'})).status,409);
+ assert.equal((await f.post('/api/reset',{requestId:randomUUID()},id)).status,409);
+ release();const [a,b]=await Promise.all([first,second]);
+ assert.deepEqual(a,b);assert.equal(calls,1);assert.equal(f.sessions.get(id).history.length,2);
+ await f.post('/api/chat',body,id);assert.equal(calls,1);
+});
+
+test('generated histories are isolated; reset and mode pinning preserve boundaries', async t=>{
+ const seen=[];
+ const f=await fixture(t,{config:testConfig(),generatedProvider:{model:'mock',respond:async({history})=>{seen.push(history.map(turn=>turn.text));return generatedReply}}});
+ const a=(await f.post('/api/session',{mode:'generated'})).body.sessionId;
+ const b=(await f.post('/api/session',{mode:'generated'})).body.sessionId;
+ await f.chat(a,{message:'Private A'});await f.chat(b,{message:'Private B'});await f.chat(a,{message:'Follow up'});
+ assert.deepEqual(seen[1],[]);assert(seen[2].includes('Private A'));assert(!seen[2].includes('Private B'));
+ assert.equal((await f.chat(a,{message:'switch',mode:'scripted'})).status,400);
+ await f.post('/api/reset',{requestId:randomUUID()},a);await f.chat(a,{message:'after reset'});assert.deepEqual(seen[3],[]);
+ assert.equal(f.sessions.get(a).mode,'generated');
+ assert.equal((await f.post('/api/session',{mode:'paid-auto-fallback'})).status,400);
+});
+
+test('local minute/day limits throttle generated attempts without affecting scripted mode', async t=>{
+ const config={...testConfig(),perMinute:1};let calls=0;
+ const f=await fixture(t,{config,generatedProvider:{model:'mock',respond:async()=>{calls++;return generatedReply}}});
+ const id=(await f.post('/api/session',{mode:'generated'})).body.sessionId;
+ await f.chat(id,{message:'one'});const blocked=await f.chat(id,{message:'two'});
+ assert.equal(blocked.status,429);assert.equal(blocked.body.code,'LOCAL_MINUTE_LIMIT');assert.equal(calls,1);
+ const scripted=await f.newSession();assert.equal((await f.chat(scripted,{action:'story'})).status,200);
+ const daily=await fixture(t,{config:{...testConfig(),perDay:1},generatedProvider:{model:'mock',respond:async()=>generatedReply}});
+ const dailyId=(await daily.post('/api/session',{mode:'generated'})).body.sessionId;
+ await daily.chat(dailyId,{message:'one'});assert.equal((await daily.chat(dailyId,{message:'two'})).body.code,'LOCAL_DAILY_LIMIT');
+});
+
+test('unconfigured generated mode makes no external request and never falls back', async t=>{
+ let calls=0;const config=readConfig({});
+ const provider=createGroqProvider(config,async()=>{calls++;throw Error('should not call')});
+ const f=await fixture(t,{config,generatedProvider:provider});
+ const id=(await f.post('/api/session',{mode:'generated'})).body.sessionId;
+ const result=await f.chat(id,{action:'story'});
+ assert.equal(result.status,503);assert.equal(result.body.code,'NOT_CONFIGURED');assert.equal(calls,0);assert.deepEqual(f.sessions.get(id).history,[]);
+});
+
+test('provider errors, invalid JSON, truncation and oversized responses are safe', async()=>{
+ for(const [status,code] of [[401,'PROVIDER_AUTH'],[403,'PROVIDER_AUTH'],[404,'MODEL_UNAVAILABLE'],[429,'PROVIDER_LIMIT'],[500,'PROVIDER_FAILURE']]){
+  const provider=createGroqProvider(testConfig(),async()=>new Response('secret test-key-not-real',{status}));
+  await assert.rejects(provider.respond({message:'hello',history:[]}),e=>e.code===code&&!e.message.includes('test-key-not-real'));
+ }
+ for(const response of [new Response('not JSON'),new Response(JSON.stringify({choices:[{finish_reason:'length'}]})),responseFor([{type:'bad',text:'hello'}]),responseFor([{type:'answer',text:''}]),new Response('x'.repeat(70000))]){
+  const provider=createGroqProvider(testConfig(),async()=>response);
+  await assert.rejects(provider.respond({message:'hello',history:[]}),e=>e instanceof ModelError&&e.status===502);
+ }
+ const missing=createGroqProvider(testConfig(),async()=>responseFor(generatedReply.sections));
+ await assert.rejects(missing.respond({action:'story',history:[]}),e=>e.code==='INVALID_MODEL_RESPONSE');
+});
+
+test('timeouts abort once, do not append history, and keep useful error codes', async t=>{
+ let calls=0;
+ const provider=createGroqProvider({...testConfig(),timeoutMs:20},async(url,{signal})=>{calls++;return new Promise((resolve,reject)=>signal.addEventListener('abort',()=>reject(new Error('aborted')),{once:true}))});
+ const f=await fixture(t,{config:testConfig(),generatedProvider:provider});
+ const id=(await f.post('/api/session',{mode:'generated'})).body.sessionId;
+ const result=await f.chat(id,{message:'hello'});
+ assert.equal(result.status,504);assert.equal(result.body.code,'MODEL_TIMEOUT');assert.equal(calls,1);assert.equal(f.sessions.get(id).history.length,0);
+});
+
+test('context retains the original story and newest complete turns',()=>{
+ const history=Array.from({length:30},(_,i)=>({role:i%2?'tutor':'learner',text:`turn ${i}`}));
+ const selected=contextMessages(history,8000);
+ assert.equal(selected[0].content,'turn 0');assert.equal(selected[1].content,'turn 1');assert.equal(selected.at(-1).content,'turn 29');assert(selected.length<=12);
+ assert.throws(()=>readConfig({MODEL_TIMEOUT_MS:'-1'}),/MODEL_TIMEOUT_MS/);
+});
+
+test('frontend accepts generated sections safely, pins mode and retries errors', async t=>{
+ let reject=false;
+ const f=await fixture(t,{config:testConfig(),generatedProvider:{model:'mock',respond:async()=>{if(reject)throw new ModelError(429,'PROVIDER_LIMIT','Mock quota reached.');return generatedReply}}});
+ const b=browser(f);b.elements['tutor-mode'].value='generated';b.elements['tutor-mode'].listeners.change();
+ await b.run("chat(null,'What is a value?',{start:true})");
+ const text=browserText(b.elements.conversation);
+ assert.match(text,/generated by Groq/);assert.match(text,/<b>A value carries information/);
+ assert.equal(b.elements['tutor-mode'].disabled,true);
+ reject=true;b.elements.message.value='Keep my question';await b.run('chat(null,input.value,{fromInput:true})');
+ assert.equal(b.elements.message.value,'Keep my question');assert.match(b.elements['request-status'].textContent,/Mock quota/);
+ reject=false;await b.run('run(failedOperation)');assert.equal(b.elements.message.value,'');
+ await b.run('run({reset:true,body:{requestId:crypto.randomUUID()}})');
+ assert.equal(b.elements['tutor-mode'].disabled,false);assert.equal(b.run('sessionId'),null);
+});
+
+test('context character cap holds for very long original and recent turns',()=>{
+ const history=Array.from({length:30},(_,i)=>({role:i%2?'tutor':'learner',text:'x'.repeat(6000)}));
+ const context=contextMessages(history,4000);
+ assert(context.reduce((sum,item)=>sum+item.content.length,0)<=4000);
+ assert(context.length>=4);
 });

@@ -207,3 +207,8 @@ textarea:disabled { opacity: .8; }
  [data-mode="mechanism"] [data-node^="value"] { top: 70%; }
  [data-mode="mechanism"] [data-node="output"] { left: 50%; top: 86%; }
 }
+
+.tutor-mode { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; margin-top: 16px; }
+.tutor-mode label { font-size: 14px; }
+.tutor-mode select { max-width: 100%; min-height: 44px; padding: 8px 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--canvas); color: var(--text); font: inherit; font-size: 14px; }
+.tutor-mode select:disabled { opacity: .7; }
